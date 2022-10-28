@@ -7,17 +7,17 @@
 typedef struct
 {
     int n, d;
-} frac;
+} ff;
 
-int f_get_int(char *s, int begin, int *end)
+int g(char *s, int b, int *e)
 {
-    for (int i = begin; i <= strlen(s); ++i)
+    for (int i = b; i <= strlen(s); ++i)
     {
         if (!isdigit(s[i]))
         {
-            if (end) *end = i - 1;
-            char *r = calloc(i - begin + 2, sizeof(char));
-            memcpy(r, s + begin, i - begin + 1);
+            if (e) *e = i - 1;
+            char *r = calloc(i - b + 2, sizeof(char));
+            memcpy(r, s + b, i - b + 1);
             int a = atoi(r);
             free(r);
             return a;
@@ -27,7 +27,7 @@ int f_get_int(char *s, int begin, int *end)
     exit(1);
 }
 
-frac parse_frac(char *s)
+ff p(char *s)
 {
     bool n = s[0] == '-';
     int e = n ? 1 : 0;
@@ -35,14 +35,14 @@ frac parse_frac(char *s)
 
     if (strchr(s, '_'))
     {
-        w = f_get_int(s, e, &e);
+        w = g(s, e, &e);
         e += 2;
     }
 
-    frac f;
-    f.n = f_get_int(s, e, &e);
+    ff f;
+    f.n = g(s, e, &e);
     if (strchr(s, '/'))
-        f.d = f_get_int(s, e + 2, 0);
+        f.d = g(s, e + 2, 0);
     else
         f.d = 1;
     f.n += w * f.d;
@@ -50,23 +50,23 @@ frac parse_frac(char *s)
     return f;
 }
 
-#define fscale(f,s) { f.n *= s; f.d *= s; }
-#define swap(a,b){ int t = a; a = b; b = t; }
+#define s(f,s) { f.n *= s; f.d *= s; }
+#define sw(a,b){ int t = a; a = b; b = t; }
 
-frac calc(frac a, frac b, char op)
+ff c(ff a, ff b, char op)
 {
-    frac r;
+    ff r;
     switch (op)
     {
     case '+': case '-':
     {
         int d = a.d;
-        fscale(a, b.d);
-        fscale(b, d);
+        s(a, b.d);
+        s(b, d);
         r.n = a.n + b.n * (op == '-' ? -1 : 1);
         r.d = a.d;
     } break;
-    case '/': swap(b.n, b.d);
+    case '/': sw(b.n, b.d);
     case '*':
         r.n = a.n * b.n;
         r.d = a.d * b.d;
@@ -76,7 +76,7 @@ frac calc(frac a, frac b, char op)
     return r;
 }
 
-frac simplify(frac f)
+ff fy(ff f)
 {
     int gcf = 1;
     for (int i = 1; i <= abs(f.n) && i <= abs(f.d); ++i)
@@ -91,16 +91,16 @@ frac simplify(frac f)
 }
 
 #define sig(a) (a < 0 ? -1 : 1)
-void display(frac f)
+void d(ff f)
 {
-    int whole = f.n / f.d;
-    int sign = sig(f.n) * sig(f.d);
+    int w = f.n / f.d;
+    int s = sig(f.n) * sig(f.d);
     f.n = abs(f.n); f.d = abs(f.d);
     f.n = f.n % f.d;
 
-    if (whole)
+    if (w)
     {
-        printf("%d", whole);
+        printf("%d", w);
 
         if (f.n)
             printf("_%d/%d", f.n, f.d);
@@ -108,7 +108,7 @@ void display(frac f)
     else
     {
         if (f.n)
-            printf("%d/%d", sign * f.n, f.d);
+            printf("%d/%d", s * f.n, f.d);
         else
             putchar('0');
     }
@@ -118,9 +118,9 @@ void display(frac f)
 
 int main(int argc, char **argv)
 {
-    frac a = parse_frac(argv[1]);
-    frac b = parse_frac(argv[3]);
-    display(simplify(calc(a, b, argv[2][0])));
+    ff a = p(argv[1]);
+    ff b = p(argv[3]);
+    d(fy(c(a, b, argv[2][0])));
 
     return 0;
 }
